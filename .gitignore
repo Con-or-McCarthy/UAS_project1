@@ -1,0 +1,7 @@
+/mcroberts_files/*
+/model_outputs/*
+.venv/
+pyvenv.cfg
+.vscode/
+__pycache__
+/processed_data/*
