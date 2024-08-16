@@ -1,8 +1,12 @@
 /mcroberts_files/*
+!/mcroberts_files/.gitkeep
 /model_outputs/*
+!/model_outputs/.gitkeep
 .venv/
 pyvenv.cfg
 .vscode/
 __pycache__
 /processed_data/*
+!/processed_data/.gitkeep
 /saved_models/*
+!/saved_models/.gitkeep
