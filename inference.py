@@ -54,7 +54,7 @@ def load_model(model_pick:str):
 
 def init_model(num_IMU: int,
                has_pressure: bool,
-               my_device: str="cuda:0"
+               my_device: str="cpu"
                ):
     model = sensor_based_IMU_fusion(
         num_IMU=num_IMU,
@@ -65,7 +65,7 @@ def init_model(num_IMU: int,
 
 
 # run inference on supplied file
-def generate_labels(model, path_to_npy, model_pick, my_device="cuda:0"):
+def generate_labels(model, path_to_npy, model_pick):
     # load data
     X = np.load(path_to_npy, allow_pickle=True)
     # Remove columns we're not interested in
@@ -88,7 +88,7 @@ def generate_labels(model, path_to_npy, model_pick, my_device="cuda:0"):
 def save_outputs(predictions,confidences,save_location):
 
     predictions_list = map_values(predictions, map_dict=code2label)
-    confidences = confidences.detach().cpu().numpy()
+    confidences = confidences.detach().numpy()
     out_arr = np.column_stack((predictions_list,confidences))
     df = pd.DataFrame(out_arr,columns=["predictions","confidence"])
     df.to_csv(save_location, index=False)

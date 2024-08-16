@@ -38,7 +38,7 @@ def downsample_X(X, window_size):
     return X_downsampled
 
 
-def separate_X_sensorwise(my_X, model_pick, my_device="cuda:0"):
+def separate_X_sensorwise(my_X, model_pick, my_device="cpu"):
     my_Xs = []
     if model_pick == "both_air":
         for i in range(4):
