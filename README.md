@@ -27,7 +27,7 @@ In the terminal, type the line:
 
 * Replace ``` <desired_sensors> ``` with 'arm', 'back', or 'both' depending on which sensors you want to be used in inference. Default is 'both'
 
-An example command to analyse files DATA20231123_exp1_pp01_arm.csv and DATA20240123_exp2_pp01_rug.csv using air pressure and both sensors:
+An example command to analyse files DATA20231123_exp1_pp01.csv and DATA20240123_exp2_pp01.csv using air pressure and both sensors:
 
 ``` python main.py -filename DATA20231123 DATA20240123 -air_pressure True -sensor_locations both ```
 
@@ -36,7 +36,7 @@ To analyse only the second experiment, without air pressure, and only the arm se
 ``` python main.py -filename DATA20240123 -air_pressure False -sensor_locations arm ```
 
 ### Read results
-After processing, the inference results will be found in folder /model_outputs/. The file name will be of the form ``` <experiment_id>\_<desired_sensors>\_<is_there_pressure>\_<date> ```, taken from your command line input. 
+After processing, the inference results will be found in folder /model_outputs/. The file name will be of the form ``` <experiment_id>_<desired_sensors>_<is_there_pressure>_<date> ```, taken from your command line input. 
 The files are in .csv format with three columns: timestamp,label,confidence. 
 'timestamp' column has the associated timestamp for the prediction. Timestamps default to 10s in length with 5s overlap. 
 'label' column has the label assigned by the model
