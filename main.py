@@ -14,12 +14,13 @@ def main(
     for exp_id in filenames:
         # preprocess data for that exp id (if not done already)
         cwd = os.getcwd()
-        npy_loc = os.path.join(cwd,"processed_data",exp_id,"X.npy")
-        if not os.path.isfile(npy_loc):
+        t_npy_loc = os.path.join(cwd,"processed_data",exp_id,"time.npy")
+        x_npy_loc = os.path.join(cwd,"processed_data",exp_id,"X.npy")
+        if not os.path.isfile(x_npy_loc):
             print(f"Preprocessing exp {exp_id}")
             process_file(exp_id)
         else:
-            print(f"exp {exp_id} has already been preprocessed and saved to {npy_loc}")
+            print(f"exp {exp_id} has already been preprocessed and saved to {x_npy_loc}")
 
         # perform inference on this exp id and save results to /model_outputs/
         model_pick=sensor_locations
@@ -32,7 +33,10 @@ def main(
         output_filename = "_".join([exp_id,model_pick,formatted_time])
         save_output_loc = os.path.join(cwd,"model_outputs",output_filename+".csv")
         print(f"Running inference on exp {exp_id}")
-        run_inference(model_pick=model_pick,path_to_npy=npy_loc,path_to_output=save_output_loc)
+        run_inference(model_pick=model_pick,
+                      path_to_x=x_npy_loc,
+                      path_to_t=t_npy_loc,
+                      path_to_output=save_output_loc)
 
     print("Finished.")
 

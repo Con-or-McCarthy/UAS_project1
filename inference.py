@@ -85,12 +85,13 @@ def generate_labels(model, path_to_npy, model_pick):
 
 
 # save outputs
-def save_outputs(predictions,confidences,save_location):
+def save_outputs(predictions,confidences,path_to_t,save_location):
 
     predictions_list = map_values(predictions, map_dict=code2label)
     confidences = confidences.detach().numpy()
-    out_arr = np.column_stack((predictions_list,confidences))
-    df = pd.DataFrame(out_arr,columns=["predictions","confidence"])
+    times = np.load(path_to_t, allow_pickle=True)
+    out_arr = np.column_stack((times,predictions_list,confidences))
+    df = pd.DataFrame(out_arr,columns=["time","predictions","confidence"])
     df.to_csv(save_location, index=False)
     print(f"saved model outputs to {save_location}")
 
@@ -102,16 +103,9 @@ def map_values(in_tensor, map_dict):
 
     return mapped_list
 
-
-
-def run_inference(model_pick, path_to_npy, path_to_output):
+# Main function
+def run_inference(model_pick, path_to_x, path_to_t, path_to_output):
     model = load_model(model_pick)
-    pred_y, max_confidences = generate_labels(model, path_to_npy=path_to_npy, model_pick=model_pick)
-    save_outputs(pred_y,max_confidences,path_to_output)
+    pred_y, max_confidences = generate_labels(model, path_to_npy=path_to_x, model_pick=model_pick)
+    save_outputs(pred_y,max_confidences,path_to_t,path_to_output)
 
-
-
-
-if __name__ == "__main__":
-    # save_file_name = "_".join([exp_id,model_pick,timenow])
-    run_inference(model_pick="both_air",path_to_npy="processed_data/20230628/X.npy",path_to_output="model_outputs/20230628_other_info.csv")

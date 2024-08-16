@@ -50,6 +50,7 @@ code2label = {code: label for label, code in label2code.items()}
 def content2x_and_y(data_content, epoch_len=30, sample_rate=100, overlap=15):
     sample_count = int(np.floor(len(data_content) / (epoch_len * sample_rate)))
 
+    sample_time_idx = -1
     sample_x_back_acc_idx = 0
     sample_y_back_acc_idx = 1
     sample_z_back_acc_idx = 2
@@ -68,6 +69,7 @@ def content2x_and_y(data_content, epoch_len=30, sample_rate=100, overlap=15):
     sample_limit = sample_count * epoch_len * sample_rate
     data_content = data_content[:sample_limit, :]
 
+    timestamp = data_content[:, sample_time_idx]
     x_back_acc = data_content[:, sample_x_back_acc_idx]
     y_back_acc = data_content[:, sample_y_back_acc_idx]
     z_back_acc = data_content[:, sample_z_back_acc_idx]
@@ -85,6 +87,7 @@ def content2x_and_y(data_content, epoch_len=30, sample_rate=100, overlap=15):
 
     # to make overlappting window
     offset = overlap * sample_rate
+    shifted_timestamp = data_content[offset:-offset:, sample_time_idx]
     shifted_x_back_acc = data_content[offset:-offset:, sample_x_back_acc_idx]
     shifted_y_back_acc = data_content[offset:-offset:, sample_y_back_acc_idx]
     shifted_z_back_acc = data_content[offset:-offset:, sample_z_back_acc_idx]
@@ -99,7 +102,7 @@ def content2x_and_y(data_content, epoch_len=30, sample_rate=100, overlap=15):
     shifted_z_arm_gyr = data_content[offset:-offset:, sample_z_arm_gyr_idx]
     shifted_back_atm = data_content[offset:-offset:, sample_back_atm_idx]
 
-
+    shifted_timestamp = shifted_timestamp.reshape(-1, epoch_len * sample_rate)
     shifted_x_back_acc = shifted_x_back_acc.reshape(-1, epoch_len * sample_rate, 1)
     shifted_y_back_acc = shifted_y_back_acc.reshape(-1, epoch_len * sample_rate, 1)
     shifted_z_back_acc = shifted_z_back_acc.reshape(-1, epoch_len * sample_rate, 1)
@@ -121,6 +124,7 @@ def content2x_and_y(data_content, epoch_len=30, sample_rate=100, overlap=15):
                                 shifted_x_arm_gyr,  shifted_y_arm_gyr,  shifted_z_arm_gyr,
                                 shifted_back_atm], axis=2)
 
+    timestamp = timestamp.reshape(-1, epoch_len * sample_rate)
     x_back_acc = x_back_acc.reshape(-1, epoch_len * sample_rate, 1)
     y_back_acc = y_back_acc.reshape(-1, epoch_len * sample_rate, 1)
     z_back_acc = z_back_acc.reshape(-1, epoch_len * sample_rate, 1)
@@ -143,7 +147,8 @@ def content2x_and_y(data_content, epoch_len=30, sample_rate=100, overlap=15):
                         back_atm], axis=2)
 
     X = np.concatenate([X, shifted_X])
-    return X
+    timestamp = np.concatenate([timestamp, shifted_timestamp])
+    return X, timestamp
 
 
 def process_row(row):
@@ -164,7 +169,7 @@ def post_process(X):
     return X
 
 
-def process_all(file_path, X_path, epoch_len, overlap):
+def process_all(file_path, X_path, time_path, epoch_len, overlap):
     sample_rate = 50
 
     # read in data
@@ -173,10 +178,10 @@ def process_all(file_path, X_path, epoch_len, overlap):
                                 parse_dates=["time"],
                                 index_col="time").iloc[:,1:]
 
-    # datContent["label activity"] = datContent["label activity"].map(label2code)
+    datContent["timestamps"] = datContent.index
     datContent = datContent.to_numpy()
 
-    current_X = content2x_and_y(
+    current_X, times = content2x_and_y(
         datContent,
         sample_rate=sample_rate,
         epoch_len=epoch_len,
@@ -189,9 +194,11 @@ def process_all(file_path, X_path, epoch_len, overlap):
     X = current_X
 
     # post-process
+    times = times[:,0]
     X = post_process(X)
 
     np.save(X_path, X)
+    np.save(time_path, times)
 
     # print some dataset stats
     print("X shape:", X.shape)
@@ -199,12 +206,13 @@ def process_all(file_path, X_path, epoch_len, overlap):
 
 def get_write_paths(data_root):
     X_path = os.path.join(data_root, "X.npy")
+    time_path = os.path.join(data_root, "time.npy")
 
-    # Make folder to store X and y if it does not already exist
+    # Make folder to store X and time if it does not already exist
     if not os.path.exists(data_root):
         os.makedirs(data_root)
 
-    return X_path
+    return X_path, time_path
 
 
 # In main file, will iterate thorugh list of desired files, so this will process one file per go
@@ -224,11 +232,11 @@ def process_file(
     # Where to save processed data
     print(f"Processing data for experiment {experiment_id}")
     processed_path = os.path.join(cwd,"processed_data",experiment_id)
-    X_path = get_write_paths(processed_path)
+    X_path, time_path = get_write_paths(processed_path)
     
     window_len = 10
     overlap = 5
-    process_all(files_to_process, X_path, window_len, overlap)
+    process_all(files_to_process, X_path, time_path, window_len, overlap)
     print("Saved data to:", X_path)
 
 
